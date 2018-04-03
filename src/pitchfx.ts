@@ -89,11 +89,14 @@ function isArray(thing: any): boolean {
 }
 
 function findAtBatPitches(atBat: AtBat): Pitch[] {
-  if (isArray(atBat.pitch)) {
-    return atBat.pitch as Pitch[];
-  } else {
-    return [atBat.pitch as Pitch];
+  if (atBat !== undefined) {
+    if (isArray(atBat.pitch)) {
+      return atBat.pitch as Pitch[];
+    } else {
+      return [atBat.pitch as Pitch];
+    }
   }
+  return [] as Pitch[];
 }
 
 function findHalfInningPitches(halfInning: InningHalf): Pitch[] {
