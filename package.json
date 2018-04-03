@@ -1,8 +1,8 @@
 {
-  "name": "pitchfx",
+  "name": "mlb-pitch-data",
   "version": "0.0.1",
   "main": "src/index.ts",
-  "license": "MIT",
+  "license": "",
   "devDependencies": {
     "@types/node": "^9.6.1",
     "@types/request": "^2.47.0",
