@@ -97,6 +97,7 @@ function handleAtBat(atbat: AtBat): string[] {
   if (isArray(atbat.pitch)) {
     atbat.pitch.forEach((pitch) => { pitches.push(pitch.pitch_type); });
   } else {
+    console.log('atbat.pitch', atbat.pitch);
     pitches.push(atbat.pitch.pitch_type);
   }
   return pitches;
@@ -149,8 +150,11 @@ export async function loadTest() {
             if (error) {
               throw new Error(`Error: ${error}`);
             }
-            // const json = toJson(body, {object: true});
+            const json = toJson(body, {object: true});
+            const pitches = extractPitches(json as GameJson);
+            console.log('pitches', pitches);
             // handleGame(json as GameJson);
+
           }).catch(() => {});
   });
 }
