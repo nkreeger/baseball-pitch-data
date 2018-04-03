@@ -1,3 +1,3 @@
-import {loadTest} from './pitchfx';
+import {downloadDate} from './download';
 
-loadTest();
+downloadDate(new Date('2018-4-2'));
