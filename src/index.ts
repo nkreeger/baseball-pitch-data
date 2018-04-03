@@ -1,1 +1,3 @@
-console.log('hi');
+import {loadTest} from './pitchfx';
+
+loadTest();

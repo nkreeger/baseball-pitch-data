@@ -5,7 +5,12 @@
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^9.6.1",
+    "@types/request": "^2.47.0",
+    "@types/request-promise-native": "^1.0.14",
+    "@types/xml2json": "^0.10.0",
     "clang-format": "^1.0.41-c",
+    "request": "^2.85.0",
+    "request-promise-native": "^1.0.5",
     "ts-node": "^5.0.1",
     "typescript": "^2.8.1",
     "xml2json": "^0.11.2"
