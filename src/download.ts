@@ -1,11 +1,8 @@
-import {EPERM} from 'constants';
 import * as rp from 'request-promise-native';
 import {toJson} from 'xml2json';
 
-import {BASE_URL, GameJson, getGamePitches, INNINGS_FILE_PATH} from './pitchfx';
+import {BASE_URL, GameJson, getGamePitches, INNINGS_FILE_PATH, Pitch} from './pitchfx';
 
-// function getDateGames(date: string): Promise<void> {
-// }
 const REGEX = /\Sgid_\d+_\d+_\d+_\w+\//g;
 
 function getTwoDigit(num: number): string {
@@ -45,18 +42,19 @@ async function getGameJson(path: string): Promise<GameJson> {
   return gameJson;
 }
 
-export async function downloadDate(date: Date) {
+export async function downloadDate(date: Date): Promise<Pitch[]> {
   const subpath = `year_${date.getFullYear()}/month_${
       getTwoDigit(date.getMonth() + 1)}/day_${getTwoDigit(date.getDate())}`;
   const datePath = BASE_URL + subpath;
 
   const gamePaths = await getDateGamePaths(datePath);
 
-  let count = 0;
-  console.log(`Found ${gamePaths.length} Games...`);
+  let pitches = [] as Pitch[];
+  console.log(`  * Found ${gamePaths.length} Games...`);
   for (let i = 0; i < gamePaths.length; i++) {
     const gameJson = await getGameJson(datePath + gamePaths[i]);
-    count += getGamePitches(gameJson).length;
+    pitches = pitches.concat(getGamePitches(gameJson));
   }
-  console.log(`Found ${count} pitches`);
+  console.log(`  * Found ${pitches.length} pitches`);
+  return pitches;
 }
