@@ -1,0 +1,1 @@
+const BASE_URL = 'http://gd2.mlb.com/components/game/mlb/';
