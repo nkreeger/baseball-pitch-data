@@ -186,7 +186,7 @@ function findAtBatPitches(atBat: AtBat): Pitch[] {
   if (atBat !== undefined) {
     if (isArray(atBat.pitch)) {
       return convertPitchJsonArray(atBat.pitch as PitchJson[]);
-    } else {
+    } else if (atBat.pitch !== undefined) {
       return [convertPitchJson(atBat.pitch as PitchJson)];
     }
   }
