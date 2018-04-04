@@ -1,3 +1,4 @@
+*.csv
 build/
 dist/
 deps/tensorflow/include/*
