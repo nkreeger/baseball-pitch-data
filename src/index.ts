@@ -22,11 +22,11 @@ async function downloadTest() {
 
   console.log(`- Found ${pitches.length} pitches`);
 
-  const bson = new BSON();
-  const serialized = bson.serialize(pitches);
-  console.log(serialized.length);
+  // const bson = new BSON();
+  // const serialized = bson.serialize(pitches);
+  // console.log(serialized.length);
 
-  writeFileSync('test.bson', serialized);
+  writeFileSync('test.bson', pitches);
   console.log('---- done');
 }
 
