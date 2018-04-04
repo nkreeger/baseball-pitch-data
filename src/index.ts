@@ -17,8 +17,10 @@ async function downloadTest() {
       // Always push keys first.
       if (output.length === 0) {
         output += Object.keys(pitch) + '\n';
+        console.log(`Number of cols: ${Object.keys(pitch).length}`);
       }
-      output += Object.values(pitch) + '\n';
+      const jsonStr = JSON.stringify(Object.values(pitch));
+      output += jsonStr.substring(1, jsonStr.length - 1) + '\n';
     }
   }
 
