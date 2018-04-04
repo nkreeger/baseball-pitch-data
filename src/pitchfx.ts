@@ -40,10 +40,10 @@ export type AtBat = {
   event_num: string,
   event: string,
   play_guid: string,
-  pitch: Pitch|Pitch[]
+  pitch: PitchJson|PitchJson[]
 };
 
-export type Pitch = {
+export type PitchJson = {
   des: string,
   id: string,
   type: string,
@@ -83,17 +83,111 @@ export type Pitch = {
   spin_rate: string,
 };
 
+export type Pitch = {
+  des: string,
+  id: number,
+  type: string,
+  code: string,
+  tfs: number,
+  tfs_zulu: string,
+  x: number,
+  y: number,
+  event_num: number,
+  sv_id: string,
+  play_guid: string,
+  start_speed: number,
+  end_speed: number,
+  sz_top: number,
+  sz_bot: number,
+  pfx_x: number,
+  pfx_z: number,
+  px: number,
+  pz: number,
+  x0: number,
+  y0: number,
+  z0: number,
+  vx0: number,
+  vy0: number,
+  vz0: number,
+  ax: number,
+  ay: number,
+  az: number,
+  break_y: number,
+  break_angle: number,
+  break_length: number,
+  pitch_type: string,
+  type_confidence: number,
+  zone: number,
+  nasty: number,
+  spin_dir: number,
+  spin_rate: number,
+};
+
 // tslint:disable-next-line:no-any
 function isArray(thing: any): boolean {
   return thing !== undefined && thing !== null && Array.isArray(thing);
 }
 
+function toInt(str: string): number {
+  return parseInt(str, 10);
+}
+
+function convertPitchJson(json: PitchJson): Pitch {
+  return {
+    des: json.des,
+    id: toInt(json.id),
+    type: json.type,
+    code: json.code,
+    tfs: toInt(json.tfs),
+    tfs_zulu: json.tfs_zulu,
+    x: parseFloat(json.x),
+    y: parseFloat(json.y),
+    event_num: toInt(json.event_num),
+    sv_id: json.sv_id,
+    play_guid: json.play_guid,
+    start_speed: parseFloat(json.start_speed),
+    end_speed: parseFloat(json.end_speed),
+    sz_top: parseFloat(json.sz_top),
+    sz_bot: parseFloat(json.sz_bot),
+    pfx_x: parseFloat(json.pfx_x),
+    pfx_z: parseFloat(json.pfx_z),
+    px: parseFloat(json.px),
+    pz: parseFloat(json.pz),
+    x0: parseFloat(json.x0),
+    y0: parseFloat(json.y0),
+    z0: parseFloat(json.z0),
+    vx0: parseFloat(json.vx0),
+    vy0: parseFloat(json.vy0),
+    vz0: parseFloat(json.vz0),
+    ax: parseFloat(json.ax),
+    ay: parseFloat(json.ay),
+    az: parseFloat(json.az),
+    break_y: parseFloat(json.break_y),
+    break_angle: parseFloat(json.break_angle),
+    break_length: parseFloat(json.break_length),
+    pitch_type: json.pitch_type,
+    type_confidence: parseFloat(json.type_confidence),
+    zone: parseFloat(json.zone),
+    nasty: parseFloat(json.nasty),
+    spin_dir: parseFloat(json.spin_dir),
+    spin_rate: parseFloat(json.spin_rate)
+  };
+}
+
+function convertPitchJsonArray(json: PitchJson[]): Pitch[] {
+  const pitches = [] as Pitch[];
+  for (let i = 0; i < json.length; i++) {
+    pitches.push(convertPitchJson(json[i]));
+  }
+  return pitches;
+}
+
 function findAtBatPitches(atBat: AtBat): Pitch[] {
   if (atBat !== undefined) {
     if (isArray(atBat.pitch)) {
-      return atBat.pitch as Pitch[];
+      return convertPitchJsonArray(atBat.pitch as PitchJson[]);
     } else {
-      return [atBat.pitch as Pitch];
+      return [convertPitchJson(atBat.pitch as PitchJson)];
     }
   }
   return [] as Pitch[];

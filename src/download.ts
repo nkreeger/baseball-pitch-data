@@ -1,6 +1,7 @@
 import * as rp from 'request-promise-native';
 import {toJson} from 'xml2json';
 
+// tslint:disable-next-line:max-line-length
 import {BASE_URL, GameJson, getGamePitches, INNINGS_FILE_PATH, Pitch} from './pitchfx';
 
 const REGEX = /\Sgid_\d+_\d+_\d+_\w+\//g;
