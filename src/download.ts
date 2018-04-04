@@ -22,7 +22,10 @@ async function getDateGamePaths(path: string): Promise<string[]> {
             if (error) {
               throw new Error(error);
             }
-            games = body.match(REGEX);
+            const matches = body.match(REGEX);
+            if (matches !== null) {
+              games = matches;
+            }
           })
       .catch(() => {});
   return games;
