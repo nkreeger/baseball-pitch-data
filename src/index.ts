@@ -1,9 +1,15 @@
 import {writeFileSync} from 'fs';
 import {downloadDate} from './download';
 
+type PitchTypes = {
+  [key: string]: number
+};
+
 async function downloadTest() {
   const start = new Date('2017-7-1');
   const end = new Date('2017-7-31');
+
+  const pitchTypes = {} as PitchTypes;
 
   let count = 0;
   let output = '';
@@ -21,10 +27,19 @@ async function downloadTest() {
       }
       const jsonStr = JSON.stringify(Object.values(pitch));
       output += jsonStr.substring(1, jsonStr.length - 1) + '\n';
+
+      if (pitchTypes[pitch.pitch_type] === undefined) {
+        pitchTypes[pitch.pitch_type] = 1;
+      } else {
+        pitchTypes[pitch.pitch_type]++;
+      }
     }
   }
 
   console.log(`- Found ${count} total pitches`);
+  console.log('- Pitch Types: ', Object.keys(pitchTypes).length);
+  console.log(pitchTypes);
+
   writeFileSync('july_2017_pitches.csv', output);
   console.log('---- saved file.');
 }

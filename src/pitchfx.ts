@@ -133,9 +133,31 @@ function toInt(str: string): number {
 }
 
 function convertPitchJson(json: PitchJson): Pitch {
-  if (json.start_speed === undefined) {
+  // Sanity check some values
+  if (json.start_speed === undefined || json.vx0 === undefined ||
+      json.x0 === undefined) {
     return null;
   }
+
+  // Ignore some pitch types
+  let pitch_type = json.pitch_type;
+  // Pitchout:
+  if (pitch_type === 'FO' || pitch_type === 'PO') {
+    return null;
+  }
+  // Unidentified:
+  if (pitch_type === 'UN' || pitch_type === 'XX' || pitch_type === 'AB') {
+    return null;
+  }
+
+  // Some pitch types are actually the same. Collapse as needed
+  if (pitch_type === 'SI') {
+    pitch_type = 'FS';
+  }
+  if (pitch_type === 'CU') {
+    pitch_type = 'CB';
+  }
+
   return {
     des: json.des,
     id: toInt(json.id),
