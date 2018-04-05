@@ -7,7 +7,7 @@ export type GameJson = {
 
 export type Game = {
   atBat: string,
-  inning: Inning|Inning[]
+  inning: Inning | Inning[]
 };
 
 export type Inning = {
@@ -20,7 +20,7 @@ export type Inning = {
 };
 
 export type InningHalf = {
-  atbat: AtBat|AtBat[]
+  atbat: AtBat | AtBat[]
 };
 
 export type AtBat = {
@@ -40,7 +40,7 @@ export type AtBat = {
   event_num: string,
   event: string,
   play_guid: string,
-  pitch: PitchJson|PitchJson[]
+  pitch: PitchJson | PitchJson[]
 };
 
 export type PitchJson = {
@@ -133,6 +133,9 @@ function toInt(str: string): number {
 }
 
 function convertPitchJson(json: PitchJson): Pitch {
+  if (json.start_speed === undefined) {
+    return null;
+  }
   return {
     des: json.des,
     id: toInt(json.id),
@@ -177,7 +180,10 @@ function convertPitchJson(json: PitchJson): Pitch {
 function convertPitchJsonArray(json: PitchJson[]): Pitch[] {
   const pitches = [] as Pitch[];
   for (let i = 0; i < json.length; i++) {
-    pitches.push(convertPitchJson(json[i]));
+    const pitch = convertPitchJson(json[i]);
+    if (pitch !== null) {
+      pitches.push(pitch);
+    }
   }
   return pitches;
 }
@@ -187,7 +193,8 @@ function findAtBatPitches(atBat: AtBat): Pitch[] {
     if (isArray(atBat.pitch)) {
       return convertPitchJsonArray(atBat.pitch as PitchJson[]);
     } else if (atBat.pitch !== undefined) {
-      return [convertPitchJson(atBat.pitch as PitchJson)];
+      const pitch = convertPitchJson(atBat.pitch as PitchJson);
+      return pitch !== null ? [pitch] : [];
     }
   }
   return [] as Pitch[];
@@ -207,7 +214,7 @@ function findHalfInningPitches(halfInning: InningHalf): Pitch[] {
   return pitches;
 }
 
-function findInningsPitches(inning: Inning[]|Inning): Pitch[] {
+function findInningsPitches(inning: Inning[] | Inning): Pitch[] {
   let pitches = [] as Pitch[];
   // Annoyingly, MLB data is stored as an object if the element has one item,
   // if it has more than one item it is an array.
