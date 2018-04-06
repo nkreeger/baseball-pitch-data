@@ -116,6 +116,7 @@ export type Pitch = {
   break_angle: number,
   break_length: number,
   pitch_type: string,
+  pitch_code: number,
   type_confidence: number,
   zone: number,
   nasty: number,
@@ -130,6 +131,36 @@ function isArray(thing: any): boolean {
 
 function toInt(str: string): number {
   return parseInt(str, 10);
+}
+
+function pitchTypeToInt(type: string): number {
+  if (type === 'FF') {
+    return 0;
+  } else if (type === 'SL') {
+    return 1;
+  } else if (type === 'FT') {
+    return 2;
+  } else if (type === 'CH') {
+    return 3;
+  } else if (type === 'KN') {
+    return 4;
+  } else if (type === 'CU') {
+    return 5;
+  } else if (type === 'EP') {
+    return 6;
+  } else if (type === 'FS') {
+    return 7;
+  } else if (type === 'KC') {
+    return 8;
+  } else if (type === 'SI') {
+    return 9;
+  } else if (type === 'FC') {
+    return 10;
+  } else if (type === 'SC') {
+    return 11;
+  } else {
+    throw new Error(`Unknown pitch type: ${type}`);
+  }
 }
 
 function convertPitchJson(json: PitchJson): Pitch {
@@ -191,6 +222,7 @@ function convertPitchJson(json: PitchJson): Pitch {
     break_angle: parseFloat(json.break_angle),
     break_length: parseFloat(json.break_length),
     pitch_type: json.pitch_type,
+    pitch_code: pitchTypeToInt(json.pitch_type),
     type_confidence: parseFloat(json.type_confidence),
     zone: parseFloat(json.zone),
     nasty: parseFloat(json.nasty),

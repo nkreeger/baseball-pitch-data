@@ -5,9 +5,9 @@ type PitchTypes = {
   [key: string]: number
 };
 
-async function downloadTest() {
-  const start = new Date('2017-7-1');
-  const end = new Date('2017-7-31');
+async function downloadPitches(start: Date, end: Date, filename: string) {
+  // const start = new Date('2017-7-1');
+  // const end = new Date('2017-7-31');
 
   const pitchTypes = {} as PitchTypes;
 
@@ -23,7 +23,6 @@ async function downloadTest() {
       // Always push keys first.
       if (output.length === 0) {
         output += Object.keys(pitch) + '\n';
-        console.log(`Number of cols: ${Object.keys(pitch).length}`);
       }
       const jsonStr = JSON.stringify(Object.values(pitch));
       output += jsonStr.substring(1, jsonStr.length - 1) + '\n';
@@ -40,8 +39,11 @@ async function downloadTest() {
   console.log('- Pitch Types: ', Object.keys(pitchTypes).length);
   console.log(pitchTypes);
 
-  writeFileSync('july_2017_pitches.csv', output);
-  console.log('---- saved file.');
+  writeFileSync(filename, output);
+  console.log('---- saved file: ', filename);
 }
 
-downloadTest();
+downloadPitches(
+    new Date('2017-6-1'), new Date('2017-6-30'), 'june_2017_pitches.csv');
+downloadPitches(
+    new Date('2017-7-1'), new Date('2017-7-31'), 'july_2017_pitches.csv');
