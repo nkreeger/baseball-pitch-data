@@ -6,9 +6,6 @@ type PitchTypes = {
 };
 
 async function downloadPitches(start: Date, end: Date, filename: string) {
-  // const start = new Date('2017-7-1');
-  // const end = new Date('2017-7-31');
-
   const pitchTypes = {} as PitchTypes;
 
   let count = 0;
