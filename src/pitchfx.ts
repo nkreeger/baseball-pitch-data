@@ -7,7 +7,7 @@ export type GameJson = {
 
 export type Game = {
   atBat: string,
-  inning: Inning | Inning[]
+  inning: Inning|Inning[]
 };
 
 export type Inning = {
@@ -20,7 +20,7 @@ export type Inning = {
 };
 
 export type InningHalf = {
-  atbat: AtBat | AtBat[]
+  atbat: AtBat|AtBat[]
 };
 
 export type AtBat = {
@@ -40,7 +40,7 @@ export type AtBat = {
   event_num: string,
   event: string,
   play_guid: string,
-  pitch: PitchJson | PitchJson[]
+  pitch: PitchJson|PitchJson[]
 };
 
 export type PitchJson = {
@@ -156,8 +156,6 @@ function pitchTypeToInt(type: string): number {
     return 9;
   } else if (type === 'FC') {
     return 10;
-  } else if (type === 'SC') {
-    return 11;
   } else {
     throw new Error(`Unknown pitch type: ${type}`);
   }
@@ -177,7 +175,8 @@ function convertPitchJson(json: PitchJson): Pitch {
     return null;
   }
   // Unidentified:
-  if (pitch_type === 'UN' || pitch_type === 'XX' || pitch_type === 'AB') {
+  if (pitch_type === 'UN' || pitch_type === 'XX' || pitch_type === 'AB' ||
+      pitch_type === 'SC') {
     return null;
   }
 
@@ -268,7 +267,7 @@ function findHalfInningPitches(halfInning: InningHalf): Pitch[] {
   return pitches;
 }
 
-function findInningsPitches(inning: Inning[] | Inning): Pitch[] {
+function findInningsPitches(inning: Inning[]|Inning): Pitch[] {
   let pitches = [] as Pitch[];
   // Annoyingly, MLB data is stored as an object if the element has one item,
   // if it has more than one item it is an array.
