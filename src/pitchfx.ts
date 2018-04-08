@@ -87,14 +87,9 @@ export type Pitch = {
   des: string,
   id: number,
   type: string,
-  code: string,
-  tfs: number,
   tfs_zulu: string,
   x: number,
   y: number,
-  event_num: number,
-  sv_id: string,
-  play_guid: string,
   start_speed: number,
   end_speed: number,
   sz_top: number,
@@ -188,18 +183,20 @@ function convertPitchJson(json: PitchJson): Pitch {
     pitch_type = 'CB';
   }
 
+
+  // Some pitches have bad type_confidence:
+  const conf = parseFloat(json.type_confidence);
+  if (conf > 1.0 || conf < 0.5) {
+    return null;
+  }
+
   return {
     des: json.des,
     id: toInt(json.id),
     type: json.type,
-    code: json.code,
-    tfs: toInt(json.tfs),
     tfs_zulu: json.tfs_zulu,
     x: parseFloat(json.x),
     y: parseFloat(json.y),
-    event_num: toInt(json.event_num),
-    sv_id: json.sv_id,
-    play_guid: json.play_guid,
     start_speed: parseFloat(json.start_speed),
     end_speed: parseFloat(json.end_speed),
     sz_top: parseFloat(json.sz_top),
