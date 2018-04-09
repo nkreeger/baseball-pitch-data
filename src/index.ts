@@ -32,7 +32,7 @@ async function downloadPitches(start: Date, end: Date, filename: string) {
     }
   }
 
-  console.log(`- Found ${count} total pitches`);
+  console.log(`- Found ${count} total pitches: ${filename}`);
   console.log('- Pitch Types: ', Object.keys(pitchTypes).length);
   console.log(pitchTypes);
 
@@ -41,12 +41,12 @@ async function downloadPitches(start: Date, end: Date, filename: string) {
 }
 
 downloadPitches(
+    new Date('2013-3-31'), new Date('2013-10-30'), '2013_pitches.csv');
+downloadPitches(
     new Date('2014-3-31'), new Date('2014-10-29'), '2014_pitches.csv');
-downloadPitches(
-    new Date('2015-4-5'), new Date('2015-11-1'), '2015_pitches.csv');
-downloadPitches(
-    new Date('2016-4-3'), new Date('2016-11-2'), '2016_pitches.csv');
-downloadPitches(
-    new Date('2017-4-2'), new Date('2017-11-1'), '2017_pitches.csv');
 // downloadPitches(
-//     new Date('2017-7-1'), new Date('2017-7-31'), 'july_2017_pitches.csv');
+//     new Date('2015-4-5'), new Date('2015-11-1'), '2015_pitches.csv');
+// downloadPitches(
+//     new Date('2016-4-3'), new Date('2016-11-2'), '2016_pitches.csv');
+// downloadPitches(
+//     new Date('2017-4-2'), new Date('2017-11-1'), '2017_pitches.csv');

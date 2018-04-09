@@ -54,11 +54,9 @@ export async function downloadDate(date: Date): Promise<Pitch[]> {
   const gamePaths = await getDateGamePaths(datePath);
 
   let pitches = [] as Pitch[];
-  console.log(`  * Found ${gamePaths.length} Games...`);
   for (let i = 0; i < gamePaths.length; i++) {
     const gameJson = await getGameJson(datePath + gamePaths[i]);
     pitches = pitches.concat(getGamePitches(gameJson));
   }
-  console.log(`  * Found ${pitches.length} pitches`);
   return pitches;
 }

@@ -7,7 +7,7 @@ export type GameJson = {
 
 export type Game = {
   atBat: string,
-  inning: Inning|Inning[]
+  inning: Inning | Inning[]
 };
 
 export type Inning = {
@@ -20,7 +20,7 @@ export type Inning = {
 };
 
 export type InningHalf = {
-  atbat: AtBat|AtBat[]
+  atbat: AtBat | AtBat[]
 };
 
 export type AtBat = {
@@ -40,7 +40,7 @@ export type AtBat = {
   event_num: string,
   event: string,
   play_guid: string,
-  pitch: PitchJson|PitchJson[]
+  pitch: PitchJson | PitchJson[]
 };
 
 export type PitchJson = {
@@ -128,6 +128,10 @@ function toInt(str: string): number {
   return parseInt(str, 10);
 }
 
+function safeStr(str: string): string {
+  return str.replace(/['"]+/g, '');
+}
+
 function pitchTypeToInt(type: string): number {
   if (type === 'FF') {
     return 0;
@@ -152,7 +156,7 @@ function pitchTypeToInt(type: string): number {
   } else if (type === 'FC') {
     return 10;
   } else {
-    throw new Error(`Unknown pitch type: ${type}`);
+    throw new Error('Unknown pitch type: ' + type);
   }
 }
 
@@ -171,7 +175,7 @@ function convertPitchJson(json: PitchJson): Pitch {
   }
   // Unidentified:
   if (pitch_type === 'UN' || pitch_type === 'XX' || pitch_type === 'AB' ||
-      pitch_type === 'SC') {
+      pitch_type === 'SC' || pitch_type === 'IN' || pitch_type === 'FA') {
     return null;
   }
 
@@ -186,7 +190,7 @@ function convertPitchJson(json: PitchJson): Pitch {
 
   // Some pitches have bad type_confidence:
   const conf = parseFloat(json.type_confidence);
-  if (conf > 1.0 || conf < 0.5) {
+  if (conf < 0.85) {
     return null;
   }
 
@@ -264,7 +268,7 @@ function findHalfInningPitches(halfInning: InningHalf): Pitch[] {
   return pitches;
 }
 
-function findInningsPitches(inning: Inning[]|Inning): Pitch[] {
+function findInningsPitches(inning: Inning[] | Inning): Pitch[] {
   let pitches = [] as Pitch[];
   // Annoyingly, MLB data is stored as an object if the element has one item,
   // if it has more than one item it is an array.
@@ -278,6 +282,48 @@ function findInningsPitches(inning: Inning[]|Inning): Pitch[] {
     pitches = pitches.concat(findHalfInningPitches((inning as Inning).bottom));
   }
   return pitches;
+}
+
+export function convertCsvToPitch(row: string): Pitch {
+  const v = row.split(',');
+  if (toInt(v[28]) === NaN) {
+    console.log(row);
+  }
+  return {
+    des: safeStr(v[0]),
+    id: toInt(v[1]),
+    type: safeStr(v[2]),
+    tfs_zulu: safeStr(v[3]),
+    x: parseFloat(v[4]),
+    y: parseFloat(v[5]),
+    start_speed: parseFloat(v[6]),
+    end_speed: parseFloat(v[7]),
+    sz_top: parseFloat(v[8]),
+    sz_bot: parseFloat(v[9]),
+    pfx_x: parseFloat(v[10]),
+    pfx_z: parseFloat(v[11]),
+    px: parseFloat(v[12]),
+    pz: parseFloat(v[13]),
+    x0: parseFloat(v[14]),
+    y0: parseFloat(v[15]),
+    z0: parseFloat(v[16]),
+    vx0: parseFloat(v[17]),
+    vy0: parseFloat(v[18]),
+    vz0: parseFloat(v[19]),
+    ax: parseFloat(v[20]),
+    ay: parseFloat(v[21]),
+    az: parseFloat(v[22]),
+    break_y: parseFloat(v[23]),
+    break_angle: parseFloat(v[24]),
+    break_length: parseFloat(v[25]),
+    pitch_type: safeStr(v[26]),
+    pitch_code: toInt(v[27]),
+    type_confidence: parseFloat(v[28]),
+    zone: parseFloat(v[29]),
+    nasty: parseFloat(v[30]),
+    spin_dir: parseFloat(v[31]),
+    spin_rate: parseFloat(v[32])
+  };
 }
 
 export function getGamePitches(gameJson: GameJson): Pitch[] {

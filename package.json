@@ -4,7 +4,8 @@
   "main": "src/index.ts",
   "license": "",
   "scripts": {
-    "test": "ts-node src/index.ts"
+    "generate": "ts-node src/training_data.ts",
+    "download": "ts-node src/index.ts"
   },
   "devDependencies": {
     "@types/bson": "^1.0.7",
