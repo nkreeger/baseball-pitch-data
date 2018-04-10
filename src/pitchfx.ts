@@ -133,30 +133,28 @@ function safeStr(str: string): string {
 }
 
 function pitchTypeToInt(type: string): number {
-  if (type === 'FA') {  // Fastball
+  if (type === 'FT') {  // Fastball 2-seam
     return 0;
-  } else if (type === 'FT') {  // Fastball 2-seam
-    return 1;
   } else if (type === 'FF') {  // Fastball 4-seam
-    return 2;
+    return 1;
   } else if (type === 'FS') {  // Fastball sinker
-    return 3;
+    return 2;
   } else if (type === 'SF') {  // Fastball split-finger
-    return 4;
+    return 3;
   } else if (type === 'FC') {  // Fastball cutter
-    return 5;
+    return 4;
   } else if (type === 'SL') {  // Slider
-    return 6;
+    return 5;
   } else if (type === 'CH') {  // Changeup
-    return 7;
+    return 6;
   } else if (type === 'CB') {  // Curveball
-    return 8;
+    return 7;
   } else if (type === 'KC') {  // Knuckle-curve
-    return 9;
+    return 8;
   } else if (type === 'KN') {  // Knuckleball
-    return 10;
+    return 9;
   } else if (type === 'EP') {  // Eephus
-    return 11;
+    return 10;
   } else {
     throw new Error('Unknown pitch type: ' + type);
   }
