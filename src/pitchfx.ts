@@ -133,28 +133,30 @@ function safeStr(str: string): string {
 }
 
 function pitchTypeToInt(type: string): number {
-  if (type === 'FF') {
+  if (type === 'FA') {  // Fastball
     return 0;
-  } else if (type === 'SL') {
+  } else if (type === 'FT') {  // Fastball 2-seam
     return 1;
-  } else if (type === 'FT') {
+  } else if (type === 'FF') {  // Fastball 4-seam
     return 2;
-  } else if (type === 'CH') {
+  } else if (type === 'FS') {  // Fastball sinker
     return 3;
-  } else if (type === 'KN') {
+  } else if (type === 'SF') {  // Fastball split-finger
     return 4;
-  } else if (type === 'CU') {
+  } else if (type === 'FC') {  // Fastball cutter
     return 5;
-  } else if (type === 'EP') {
+  } else if (type === 'SL') {  // Slider
     return 6;
-  } else if (type === 'FS') {
+  } else if (type === 'CH') {  // Changeup
     return 7;
-  } else if (type === 'KC') {
+  } else if (type === 'CB') {  // Curveball
     return 8;
-  } else if (type === 'SI') {
+  } else if (type === 'KC') {  // Knuckle-curve
     return 9;
-  } else if (type === 'FC') {
+  } else if (type === 'KN') {  // Knuckleball
     return 10;
+  } else if (type === 'EP') {  // Eephus
+    return 11;
   } else {
     throw new Error('Unknown pitch type: ' + type);
   }
@@ -175,7 +177,7 @@ function convertPitchJson(json: PitchJson): Pitch {
   }
   // Unidentified:
   if (pitch_type === 'UN' || pitch_type === 'XX' || pitch_type === 'AB' ||
-      pitch_type === 'SC' || pitch_type === 'IN' || pitch_type === 'FA') {
+      pitch_type === 'SC' || pitch_type === 'IN') {
     return null;
   }
 
@@ -221,8 +223,8 @@ function convertPitchJson(json: PitchJson): Pitch {
     break_y: parseFloat(json.break_y),
     break_angle: parseFloat(json.break_angle),
     break_length: parseFloat(json.break_length),
-    pitch_type: json.pitch_type,
-    pitch_code: pitchTypeToInt(json.pitch_type),
+    pitch_type: pitch_type,
+    pitch_code: pitchTypeToInt(pitch_type),
     type_confidence: parseFloat(json.type_confidence),
     zone: parseFloat(json.zone),
     nasty: parseFloat(json.nasty),
