@@ -10,14 +10,49 @@ type SamplePitches = {
   [key: number]: Pitch
 };
 
+class MinMax {
+  min: number;
+  max: number;
+
+  constructor() {
+    this.min = undefined;
+    this.max = undefined;
+  }
+}
+
+class Fields {
+  vx0 = new MinMax();
+  vy0 = new MinMax();
+  vz0 = new MinMax();
+  ax = new MinMax();
+  ay = new MinMax();
+  az = new MinMax();
+}
+
+function assignMinMax(value: number, minMax: MinMax) {
+  if (minMax.max === undefined || value > minMax.max) {
+    minMax.max = value;
+  }
+  if (minMax.min === undefined || value < minMax.min) {
+    minMax.min = value;
+  }
+}
+
 function createTrainingData(
     filename: string, trainBucket: PitchBuckets, testBucket: PitchBuckets,
-    sample: SamplePitches) {
-  let content = readFileSync(filename, 'utf-8').split('\n');
+    sample: SamplePitches, fields: Fields) {
+  const content = readFileSync(filename, 'utf-8').split('\n');
   for (let i = 1; i < content.length - 1; i++) {
     const pitch = convertCsvToPitch(content[i]);
     if (pitch.type_confidence >= 0.9 && pitch.type_confidence <= 1.0 &&
         !isNaN(pitch.pitch_code)) {
+      assignMinMax(pitch.vx0, fields.vx0);
+      assignMinMax(pitch.vy0, fields.vy0);
+      assignMinMax(pitch.vz0, fields.vz0);
+      assignMinMax(pitch.ax, fields.ax);
+      assignMinMax(pitch.ay, fields.ay);
+      assignMinMax(pitch.az, fields.az);
+
       if (trainBucket[pitch.pitch_code] === undefined) {
         trainBucket[pitch.pitch_code] = [];
       }
@@ -42,10 +77,15 @@ function createTrainingData(
 const trainBucket = {} as PitchBuckets;
 const testBucket = {} as PitchBuckets;
 const samplePitches = {} as SamplePitches;
-createTrainingData('2015_pitches.csv', trainBucket, testBucket, samplePitches);
-createTrainingData('2016_pitches.csv', trainBucket, testBucket, samplePitches);
-createTrainingData('2017_pitches.csv', trainBucket, testBucket, samplePitches);
-createTrainingData('2014_pitches.csv', trainBucket, testBucket, samplePitches);
+const fields = new Fields();
+createTrainingData(
+    '2015_pitches.csv', trainBucket, testBucket, samplePitches, fields);
+createTrainingData(
+    '2016_pitches.csv', trainBucket, testBucket, samplePitches, fields);
+createTrainingData(
+    '2017_pitches.csv', trainBucket, testBucket, samplePitches, fields);
+createTrainingData(
+    '2014_pitches.csv', trainBucket, testBucket, samplePitches, fields);
 
 let keys = Object.keys(trainBucket);
 
@@ -81,4 +121,19 @@ for (let i = 0; i < keys.length; i++) {
       pitch.pz + '],\n';
 }
 writeFileSync('sample.csv', output);
+
+// Print out fields
+console.log(`VX0_MIN = ${fields.vx0.min}`);
+console.log(`VX0_MAX = ${fields.vx0.max}`);
+console.log(`VY0_MIN = ${fields.vy0.min}`);
+console.log(`VY0_MAX = ${fields.vy0.max}`);
+console.log(`VZ0_MIN = ${fields.vz0.min}`);
+console.log(`VZ0_MAX = ${fields.vz0.max}`);
+console.log(`AX_MIN = ${fields.ax.min}`);
+console.log(`AX_MAX = ${fields.ax.max}`);
+console.log(`AY_MIN = ${fields.ay.min}`);
+console.log(`AY_MAX = ${fields.ay.max}`);
+console.log(`AZ_MIN = ${fields.az.min}`);
+console.log(`AZ_MAX = ${fields.az.max}`);
+
 console.log('done');
