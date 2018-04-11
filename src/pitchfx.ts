@@ -139,22 +139,20 @@ function pitchTypeToInt(type: string): number {
     return 1;
   } else if (type === 'FS') {  // Fastball sinker
     return 2;
-  } else if (type === 'SF') {  // Fastball split-finger
-    return 3;
   } else if (type === 'FC') {  // Fastball cutter
-    return 4;
+    return 3;
   } else if (type === 'SL') {  // Slider
-    return 5;
+    return 4;
   } else if (type === 'CH') {  // Changeup
-    return 6;
+    return 5;
   } else if (type === 'CB') {  // Curveball
-    return 7;
+    return 6;
   } else if (type === 'KC') {  // Knuckle-curve
-    return 8;
+    return 7;
   } else if (type === 'KN') {  // Knuckleball
-    return 9;
+    return 8;
   } else if (type === 'EP') {  // Eephus
-    return 10;
+    return 9;
   } else {
     throw new Error('Unknown pitch type: ' + type);
   }
@@ -175,7 +173,7 @@ function convertPitchJson(json: PitchJson): Pitch {
   }
   // Unidentified:
   if (pitch_type === 'UN' || pitch_type === 'XX' || pitch_type === 'AB' ||
-      pitch_type === 'SC' || pitch_type === 'IN') {
+      pitch_type === 'SC' || pitch_type === 'IN' || pitch_type === 'FA') {
     return null;
   }
 
