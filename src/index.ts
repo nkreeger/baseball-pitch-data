@@ -40,13 +40,11 @@ async function downloadPitches(start: Date, end: Date, filename: string) {
   console.log('---- saved file: ', filename);
 }
 
-// downloadPitches(
-//     new Date('2013-3-31'), new Date('2013-10-30'), '2013_pitches.csv');
 downloadPitches(
     new Date('2014-3-31'), new Date('2014-10-29'), '2014_pitches.csv');
-// downloadPitches(
-//     new Date('2015-4-5'), new Date('2015-11-1'), '2015_pitches.csv');
+downloadPitches(
+    new Date('2015-4-5'), new Date('2015-11-1'), '2015_pitches.csv');
 downloadPitches(
     new Date('2016-4-3'), new Date('2016-11-2'), '2016_pitches.csv');
-// downloadPitches(
-//     new Date('2017-4-2'), new Date('2017-11-1'), '2017_pitches.csv');
+downloadPitches(
+    new Date('2017-4-2'), new Date('2017-11-1'), '2017_pitches.csv');
