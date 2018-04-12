@@ -47,8 +47,8 @@ function createTrainingData(
   const content = readFileSync(filename, 'utf-8').split('\n');
   for (let i = 1; i < content.length - 1; i++) {
     const pitch = convertCsvToPitch(content[i]);
-    if (pitch.type_confidence === 2 && !isNaN(pitch.pitch_code) &&
-        pitch.pitch_code < 7) {
+    if (pitch.type_confidence >= .95 && pitch.type_confidence <= 1.0 &&
+        !isNaN(pitch.pitch_code) && pitch.pitch_code < 7) {
       assignMinMax(pitch.vx0, fields.vx0);
       assignMinMax(pitch.vy0, fields.vy0);
       assignMinMax(pitch.vz0, fields.vz0);
