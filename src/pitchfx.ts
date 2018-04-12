@@ -1,13 +1,32 @@
 export const BASE_URL = 'http://gd2.mlb.com/components/game/mlb/';
 export const INNINGS_FILE_PATH = 'inning/inning_all.xml';
 
+export class MinMax {
+  min: number;
+  max: number;
+
+  constructor() {
+    this.min = undefined;
+    this.max = undefined;
+  }
+}
+
+export function assignMinMax(value: number, minMax: MinMax) {
+  if (minMax.max === undefined || value > minMax.max) {
+    minMax.max = value;
+  }
+  if (minMax.min === undefined || value < minMax.min) {
+    minMax.min = value;
+  }
+}
+
 export type GameJson = {
   game: Game
 };
 
 export type Game = {
   atBat: string,
-  inning: Inning | Inning[]
+  inning: Inning|Inning[]
 };
 
 export type Inning = {
@@ -20,7 +39,7 @@ export type Inning = {
 };
 
 export type InningHalf = {
-  atbat: AtBat | AtBat[]
+  atbat: AtBat|AtBat[]
 };
 
 export type AtBat = {
@@ -40,7 +59,7 @@ export type AtBat = {
   event_num: string,
   event: string,
   play_guid: string,
-  pitch: PitchJson | PitchJson[]
+  pitch: PitchJson|PitchJson[]
 };
 
 export type PitchJson = {
@@ -87,6 +106,7 @@ export type Pitch = {
   des: string,
   id: number,
   type: string,
+  code: string,
   tfs_zulu: string,
   x: number,
   y: number,
@@ -118,6 +138,14 @@ export type Pitch = {
   spin_dir: number,
   spin_rate: number,
   is_left_handed: number
+};
+
+export type SZData = {
+  px: number,
+  pz: number,
+  sz_top: number,
+  sz_bot: number,
+  label: number
 };
 
 // tslint:disable-next-line:no-any
@@ -155,7 +183,7 @@ function pitchTypeToInt(type: string): number {
     // } else if (type === 'EP') {  // Eephus
     //   return 9;
   } else {
-    throw new Error('Unknown pitch type: ' + type);
+    return -1;
   }
 }
 
@@ -167,41 +195,41 @@ function convertPitchJson(json: PitchJson, isLefty: boolean): Pitch {
   }
 
   // Ignore some pitch types
-  let pitch_type = json.pitch_type;
+  let pitchType = json.pitch_type;
   // Pitchout:
-  if (pitch_type === 'FO' || pitch_type === 'PO') {
-    return null;
+  if (pitchType === 'FO' || pitchType === 'PO') {
+    pitchType = 'PO';
   }
-  // Unidentified:
-  if (pitch_type === 'UN' || pitch_type === 'XX' || pitch_type === 'AB' ||
-      pitch_type === 'SC' || pitch_type === 'IN' || pitch_type === 'FA') {
-    return null;
-  }
+  // // Unidentified:
+  // if (pitchType === 'UN' || pitchType === 'XX' || pitchType === 'AB' ||
+  //     pitchType === 'SC' || pitchType === 'IN' || pitchType === 'FA') {
+  //   return null;
+  // }
 
   // Ignore Knucklecurve Knuckleball and Eephus for now
-  if (pitch_type === 'KC' || pitch_type === 'KN' || pitch_type === 'EP') {
-    return null;
-  }
+  // if (pitchType === 'KC' || pitchType === 'KN' || pitchType === 'EP') {
+  //   return null;
+  // }
 
   // Some pitch types are actually the same. Collapse as needed
-  if (pitch_type === 'SI') {
-    pitch_type = 'FS';
+  if (pitchType === 'SI') {
+    pitchType = 'FS';
   }
-  if (pitch_type === 'CU') {
-    pitch_type = 'CB';
+  if (pitchType === 'CU') {
+    pitchType = 'CB';
   }
-
 
   // Some pitches have bad type_confidence:
   const conf = parseFloat(json.type_confidence);
-  if (conf < 0.85) {
-    return null;
-  }
+  // if (conf < 0.85) {
+  //   return null;
+  // }
 
   return {
     des: json.des,
     id: toInt(json.id),
     type: json.type,
+    code: json.code,
     tfs_zulu: json.tfs_zulu,
     x: parseFloat(json.x),
     y: parseFloat(json.y),
@@ -225,9 +253,9 @@ function convertPitchJson(json: PitchJson, isLefty: boolean): Pitch {
     break_y: parseFloat(json.break_y),
     break_angle: parseFloat(json.break_angle),
     break_length: parseFloat(json.break_length),
-    pitch_type: pitch_type,
-    pitch_code: pitchTypeToInt(pitch_type),
-    type_confidence: parseFloat(json.type_confidence),
+    pitch_type: pitchType,
+    pitch_code: pitchTypeToInt(pitchType),
+    type_confidence: conf,
     zone: parseFloat(json.zone),
     nasty: parseFloat(json.nasty),
     spin_dir: parseFloat(json.spin_dir),
@@ -274,7 +302,7 @@ function findHalfInningPitches(halfInning: InningHalf): Pitch[] {
   return pitches;
 }
 
-function findInningsPitches(inning: Inning[] | Inning): Pitch[] {
+function findInningsPitches(inning: Inning[]|Inning): Pitch[] {
   let pitches = [] as Pitch[];
   // Annoyingly, MLB data is stored as an object if the element has one item,
   // if it has more than one item it is an array.
@@ -292,44 +320,53 @@ function findInningsPitches(inning: Inning[] | Inning): Pitch[] {
 
 export function convertCsvToPitch(row: string): Pitch {
   const v = row.split(',');
-  if (toInt(v[28]) === NaN) {
-    console.log(row);
-  }
+  let i = 0;
   return {
-    des: safeStr(v[0]),
-    id: toInt(v[1]),
-    type: safeStr(v[2]),
-    tfs_zulu: safeStr(v[3]),
-    x: parseFloat(v[4]),
-    y: parseFloat(v[5]),
-    start_speed: parseFloat(v[6]),
-    end_speed: parseFloat(v[7]),
-    sz_top: parseFloat(v[8]),
-    sz_bot: parseFloat(v[9]),
-    pfx_x: parseFloat(v[10]),
-    pfx_z: parseFloat(v[11]),
-    px: parseFloat(v[12]),
-    pz: parseFloat(v[13]),
-    x0: parseFloat(v[14]),
-    y0: parseFloat(v[15]),
-    z0: parseFloat(v[16]),
-    vx0: parseFloat(v[17]),
-    vy0: parseFloat(v[18]),
-    vz0: parseFloat(v[19]),
-    ax: parseFloat(v[20]),
-    ay: parseFloat(v[21]),
-    az: parseFloat(v[22]),
-    break_y: parseFloat(v[23]),
-    break_angle: parseFloat(v[24]),
-    break_length: parseFloat(v[25]),
-    pitch_type: safeStr(v[26]),
-    pitch_code: toInt(v[27]),
-    type_confidence: parseFloat(v[28]),
-    zone: parseFloat(v[29]),
-    nasty: parseFloat(v[30]),
-    spin_dir: parseFloat(v[31]),
-    spin_rate: parseFloat(v[32]),
-    is_left_handed: toInt(v[33])
+    des: safeStr(v[i++]),
+    id: toInt(v[i++]),
+    type: safeStr(v[i++]),
+    code: safeStr(v[i++]),
+    tfs_zulu: safeStr(v[i++]),
+    x: parseFloat(v[i++]),
+    y: parseFloat(v[i++]),
+    start_speed: parseFloat(v[i++]),
+    end_speed: parseFloat(v[i++]),
+    sz_top: parseFloat(v[i++]),
+    sz_bot: parseFloat(v[i++]),
+    pfx_x: parseFloat(v[i++]),
+    pfx_z: parseFloat(v[i++]),
+    px: parseFloat(v[i++]),
+    pz: parseFloat(v[i++]),
+    x0: parseFloat(v[i++]),
+    y0: parseFloat(v[i++]),
+    z0: parseFloat(v[i++]),
+    vx0: parseFloat(v[i++]),
+    vy0: parseFloat(v[i++]),
+    vz0: parseFloat(v[i++]),
+    ax: parseFloat(v[i++]),
+    ay: parseFloat(v[i++]),
+    az: parseFloat(v[i++]),
+    break_y: parseFloat(v[i++]),
+    break_angle: parseFloat(v[i++]),
+    break_length: parseFloat(v[i++]),
+    pitch_type: safeStr(v[i++]),
+    pitch_code: toInt(v[i++]),
+    type_confidence: parseFloat(v[i++]),
+    zone: parseFloat(v[i++]),
+    nasty: parseFloat(v[i++]),
+    spin_dir: parseFloat(v[i++]),
+    spin_rate: parseFloat(v[i++]),
+    is_left_handed: toInt(v[i++])
+  };
+}
+
+export function convertSZData(pitch: Pitch, isStrike: boolean): SZData {
+  return {
+    px: pitch.px,
+    pz: pitch.pz,
+    sz_top: pitch.sz_top,
+    sz_bot: pitch.sz_bot,
+    label: isStrike ? 0 : 1
   };
 }
 

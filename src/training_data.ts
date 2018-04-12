@@ -1,6 +1,6 @@
 import {readFileSync, writeFileSync} from 'fs';
 
-import {Pitch, convertCsvToPitch} from './pitchfx';
+import {assignMinMax, convertCsvToPitch, MinMax, Pitch} from './pitchfx';
 
 type PitchBuckets = {
   [key: number]: string[]
@@ -9,16 +9,6 @@ type PitchBuckets = {
 type SamplePitches = {
   [key: number]: Pitch
 };
-
-class MinMax {
-  min: number;
-  max: number;
-
-  constructor() {
-    this.min = undefined;
-    this.max = undefined;
-  }
-}
 
 class Fields {
   vx0 = new MinMax();
@@ -32,15 +22,6 @@ class Fields {
   startSpeed = new MinMax();
 }
 
-function assignMinMax(value: number, minMax: MinMax) {
-  if (minMax.max === undefined || value > minMax.max) {
-    minMax.max = value;
-  }
-  if (minMax.min === undefined || value < minMax.min) {
-    minMax.min = value;
-  }
-}
-
 function createTrainingData(
     filename: string, trainBucket: PitchBuckets, testBucket: PitchBuckets,
     sample: SamplePitches, fields: Fields) {
@@ -48,7 +29,8 @@ function createTrainingData(
   for (let i = 1; i < content.length - 1; i++) {
     const pitch = convertCsvToPitch(content[i]);
     if (pitch.type_confidence >= .95 && pitch.type_confidence <= 1.0 &&
-        !isNaN(pitch.pitch_code) && pitch.pitch_code < 7) {
+        !isNaN(pitch.pitch_code) && pitch.pitch_code < 7 &&
+        pitch.pitch_code > -1) {
       assignMinMax(pitch.vx0, fields.vx0);
       assignMinMax(pitch.vy0, fields.vy0);
       assignMinMax(pitch.vz0, fields.vz0);
@@ -84,12 +66,12 @@ const trainBucket = {} as PitchBuckets;
 const testBucket = {} as PitchBuckets;
 const samplePitches = {} as SamplePitches;
 const fields = new Fields();
-// createTrainingData(
-//     '2015_pitches.csv', trainBucket, testBucket, samplePitches, fields);
 createTrainingData(
     '2017_pitches.csv', trainBucket, testBucket, samplePitches, fields);
 createTrainingData(
     '2016_pitches.csv', trainBucket, testBucket, samplePitches, fields);
+createTrainingData(
+    '2015_pitches.csv', trainBucket, testBucket, samplePitches, fields);
 // createTrainingData(
 //     '2014_pitches.csv', trainBucket, testBucket, samplePitches, fields);
 

@@ -5,6 +5,8 @@
   "license": "",
   "scripts": {
     "generate": "ts-node src/training_data.ts",
+    "hack": "ts-node src/hack.ts",
+    "szd": "ts-node src/strike_zone_data.ts",
     "download": "ts-node src/index.ts"
   },
   "devDependencies": {
