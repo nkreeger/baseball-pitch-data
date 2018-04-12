@@ -117,6 +117,7 @@ export type Pitch = {
   nasty: number,
   spin_dir: number,
   spin_rate: number,
+  is_left_handed: number
 };
 
 // tslint:disable-next-line:no-any
@@ -147,18 +148,18 @@ function pitchTypeToInt(type: string): number {
     return 5;
   } else if (type === 'CB') {  // Curveball
     return 6;
-  } else if (type === 'KC') {  // Knuckle-curve
-    return 7;
-  } else if (type === 'KN') {  // Knuckleball
-    return 8;
-  } else if (type === 'EP') {  // Eephus
-    return 9;
+    // } else if (type === 'KC') {  // Knuckle-curve
+    //   return 7;
+    // } else if (type === 'KN') {  // Knuckleball
+    //   return 8;
+    // } else if (type === 'EP') {  // Eephus
+    //   return 9;
   } else {
     throw new Error('Unknown pitch type: ' + type);
   }
 }
 
-function convertPitchJson(json: PitchJson): Pitch {
+function convertPitchJson(json: PitchJson, isLefty: boolean): Pitch {
   // Sanity check some values
   if (json.start_speed === undefined || json.vx0 === undefined ||
       json.x0 === undefined) {
@@ -174,6 +175,11 @@ function convertPitchJson(json: PitchJson): Pitch {
   // Unidentified:
   if (pitch_type === 'UN' || pitch_type === 'XX' || pitch_type === 'AB' ||
       pitch_type === 'SC' || pitch_type === 'IN' || pitch_type === 'FA') {
+    return null;
+  }
+
+  // Ignore Knucklecurve Knuckleball and Eephus for now
+  if (pitch_type === 'KC' || pitch_type === 'KN' || pitch_type === 'EP') {
     return null;
   }
 
@@ -225,14 +231,15 @@ function convertPitchJson(json: PitchJson): Pitch {
     zone: parseFloat(json.zone),
     nasty: parseFloat(json.nasty),
     spin_dir: parseFloat(json.spin_dir),
-    spin_rate: parseFloat(json.spin_rate)
+    spin_rate: parseFloat(json.spin_rate),
+    is_left_handed: isLefty ? 1 : 0
   };
 }
 
-function convertPitchJsonArray(json: PitchJson[]): Pitch[] {
+function convertPitchJsonArray(json: PitchJson[], isLefty: boolean): Pitch[] {
   const pitches = [] as Pitch[];
   for (let i = 0; i < json.length; i++) {
-    const pitch = convertPitchJson(json[i]);
+    const pitch = convertPitchJson(json[i], isLefty);
     if (pitch !== null) {
       pitches.push(pitch);
     }
@@ -242,10 +249,11 @@ function convertPitchJsonArray(json: PitchJson[]): Pitch[] {
 
 function findAtBatPitches(atBat: AtBat): Pitch[] {
   if (atBat !== undefined) {
+    const isLefty = atBat.p_throws.toUpperCase() === 'L';
     if (isArray(atBat.pitch)) {
-      return convertPitchJsonArray(atBat.pitch as PitchJson[]);
+      return convertPitchJsonArray(atBat.pitch as PitchJson[], isLefty);
     } else if (atBat.pitch !== undefined) {
-      const pitch = convertPitchJson(atBat.pitch as PitchJson);
+      const pitch = convertPitchJson(atBat.pitch as PitchJson, isLefty);
       return pitch !== null ? [pitch] : [];
     }
   }
@@ -320,7 +328,8 @@ export function convertCsvToPitch(row: string): Pitch {
     zone: parseFloat(v[29]),
     nasty: parseFloat(v[30]),
     spin_dir: parseFloat(v[31]),
-    spin_rate: parseFloat(v[32])
+    spin_rate: parseFloat(v[32]),
+    is_left_handed: toInt(v[33])
   };
 }
 

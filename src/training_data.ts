@@ -27,6 +27,9 @@ class Fields {
   ax = new MinMax();
   ay = new MinMax();
   az = new MinMax();
+  pfxX = new MinMax();
+  pfxZ = new MinMax();
+  startSpeed = new MinMax();
 }
 
 function assignMinMax(value: number, minMax: MinMax) {
@@ -44,14 +47,17 @@ function createTrainingData(
   const content = readFileSync(filename, 'utf-8').split('\n');
   for (let i = 1; i < content.length - 1; i++) {
     const pitch = convertCsvToPitch(content[i]);
-    if (pitch.type_confidence >= 0.9 && pitch.type_confidence <= 1.0 &&
-        !isNaN(pitch.pitch_code)) {
+    if (pitch.type_confidence === 2 && !isNaN(pitch.pitch_code) &&
+        pitch.pitch_code < 7) {
       assignMinMax(pitch.vx0, fields.vx0);
       assignMinMax(pitch.vy0, fields.vy0);
       assignMinMax(pitch.vz0, fields.vz0);
       assignMinMax(pitch.ax, fields.ax);
       assignMinMax(pitch.ay, fields.ay);
       assignMinMax(pitch.az, fields.az);
+      assignMinMax(pitch.pfx_x, fields.pfxX);
+      assignMinMax(pitch.pfx_z, fields.pfxZ);
+      assignMinMax(pitch.start_speed, fields.startSpeed);
 
       if (trainBucket[pitch.pitch_code] === undefined) {
         trainBucket[pitch.pitch_code] = [];
@@ -78,14 +84,14 @@ const trainBucket = {} as PitchBuckets;
 const testBucket = {} as PitchBuckets;
 const samplePitches = {} as SamplePitches;
 const fields = new Fields();
-createTrainingData(
-    '2015_pitches.csv', trainBucket, testBucket, samplePitches, fields);
-createTrainingData(
-    '2016_pitches.csv', trainBucket, testBucket, samplePitches, fields);
+// createTrainingData(
+//     '2015_pitches.csv', trainBucket, testBucket, samplePitches, fields);
 createTrainingData(
     '2017_pitches.csv', trainBucket, testBucket, samplePitches, fields);
 createTrainingData(
-    '2014_pitches.csv', trainBucket, testBucket, samplePitches, fields);
+    '2016_pitches.csv', trainBucket, testBucket, samplePitches, fields);
+// createTrainingData(
+//     '2014_pitches.csv', trainBucket, testBucket, samplePitches, fields);
 
 let keys = Object.keys(trainBucket);
 
@@ -117,8 +123,9 @@ output = '';
 for (let i = 0; i < keys.length; i++) {
   const pitch = samplePitches[parseInt(keys[i], 10)];
   output += '[' + pitch.vx0 + ',' + pitch.vy0 + ',' + pitch.vz0 + ',' +
-      pitch.ax + ',' + pitch.ay + ',' + pitch.az + ',' + pitch.px + ',' +
-      pitch.pz + '],\n';
+      pitch.ax + ',' + pitch.ay + ',' + pitch.az + ',' + pitch.pfx_x + ',' +
+      pitch.pfx_z + ',' + pitch.start_speed + ',' + pitch.is_left_handed +
+      '],\n';
 }
 writeFileSync('sample.csv', output);
 
@@ -135,5 +142,11 @@ console.log(`AY_MIN = ${fields.ay.min}`);
 console.log(`AY_MAX = ${fields.ay.max}`);
 console.log(`AZ_MIN = ${fields.az.min}`);
 console.log(`AZ_MAX = ${fields.az.max}`);
+console.log(`PFX_X_MIN = ${fields.pfxX.min}`);
+console.log(`PFX_X_MAX = ${fields.pfxX.max}`);
+console.log(`PFX_Z_MIN = ${fields.pfxZ.min}`);
+console.log(`PFX_Z_MAX = ${fields.pfxZ.max}`);
+console.log(`START_SPEED_MIN = ${fields.startSpeed.min}`);
+console.log(`START_SPEED_MAX = ${fields.startSpeed.max}`);
 
 console.log('done');
