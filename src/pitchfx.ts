@@ -1,5 +1,63 @@
-export const BASE_URL = 'http://gd2.mlb.com/components/game/mlb/';
-export const INNINGS_FILE_PATH = 'inning/inning_all.xml';
+import * as rp from 'request-promise-native';
+import {toJson} from 'xml2json';
+
+const BASE_URL = 'http://gd2.mlb.com/components/game/mlb/';
+const INNINGS_FILE_PATH = 'inning/inning_all.xml';
+const REGEX = /\Sgid_\d+_\d+_\d+_\w+\//g;
+
+function getTwoDigit(num: number): string {
+  if (num < 10) {
+    return '0' + num;
+  }
+  return num.toString();
+}
+
+async function getDateGamePaths(path: string):
+    Promise<string[]> {
+      let games = [] as string[];
+      await
+          rp.get(path, {}, (error, response, body) => {
+              if (error) {
+                throw new Error(error);
+              }
+              const matches = body.match(REGEX);
+              if (matches !== null) {
+                games = matches;
+              }
+            }).catch(() => {});
+      return games;
+    }
+
+async function
+getGameJson(path: string):
+    Promise<GameJson> {
+      let gameJson = null as GameJson;
+      await
+          rp.get(path + INNINGS_FILE_PATH, {}, (error, response, body) => {
+              if (error) {
+                throw new Error(error);
+              }
+              gameJson = toJson(body, {object: true}) as GameJson;
+            }).catch(() => {});
+      return gameJson;
+    }
+
+export async function
+getDatePitches(date: Date):
+    Promise<Pitch[]> {
+      const subpath = `year_${date.getFullYear()}/month_${
+      getTwoDigit(date.getMonth() + 1)}/day_${getTwoDigit(date.getDate())}`;
+      const datePath = BASE_URL + subpath;
+
+      const gamePaths = await getDateGamePaths(datePath);
+
+      let pitches = [] as Pitch[];
+      for (let i = 0; i < gamePaths.length; i++) {
+        const gameJson = await getGameJson(datePath + gamePaths[i]);
+        pitches = pitches.concat(getGamePitches(gameJson));
+      }
+      return pitches;
+    }
 
 export class MinMax {
   min: number;
@@ -26,7 +84,7 @@ export type GameJson = {
 
 export type Game = {
   atBat: string,
-  inning: Inning|Inning[]
+  inning: Inning | Inning[]
 };
 
 export type Inning = {
@@ -39,7 +97,7 @@ export type Inning = {
 };
 
 export type InningHalf = {
-  atbat: AtBat|AtBat[]
+  atbat: AtBat | AtBat[]
 };
 
 export type AtBat = {
@@ -59,7 +117,7 @@ export type AtBat = {
   event_num: string,
   event: string,
   play_guid: string,
-  pitch: PitchJson|PitchJson[]
+  pitch: PitchJson | PitchJson[]
 };
 
 export type PitchJson = {
@@ -137,7 +195,8 @@ export type Pitch = {
   nasty: number,
   spin_dir: number,
   spin_rate: number,
-  is_left_handed: number
+  left_handed_pitcher: number,
+  left_handed_batter: number
 };
 
 export type SZData = {
@@ -187,7 +246,8 @@ function pitchTypeToInt(type: string): number {
   }
 }
 
-function convertPitchJson(json: PitchJson, isLefty: boolean): Pitch {
+function convertPitchJson(
+    json: PitchJson, isLeftyPitcher: boolean, isLeftyBatter: boolean): Pitch {
   // Sanity check some values
   if (json.start_speed === undefined || json.vx0 === undefined ||
       json.x0 === undefined) {
@@ -206,11 +266,6 @@ function convertPitchJson(json: PitchJson, isLefty: boolean): Pitch {
   //   return null;
   // }
 
-  // Ignore Knucklecurve Knuckleball and Eephus for now
-  // if (pitchType === 'KC' || pitchType === 'KN' || pitchType === 'EP') {
-  //   return null;
-  // }
-
   // Some pitch types are actually the same. Collapse as needed
   if (pitchType === 'SI') {
     pitchType = 'FS';
@@ -218,12 +273,6 @@ function convertPitchJson(json: PitchJson, isLefty: boolean): Pitch {
   if (pitchType === 'CU') {
     pitchType = 'CB';
   }
-
-  // Some pitches have bad type_confidence:
-  const conf = parseFloat(json.type_confidence);
-  // if (conf < 0.85) {
-  //   return null;
-  // }
 
   return {
     des: json.des,
@@ -255,19 +304,22 @@ function convertPitchJson(json: PitchJson, isLefty: boolean): Pitch {
     break_length: parseFloat(json.break_length),
     pitch_type: pitchType,
     pitch_code: pitchTypeToInt(pitchType),
-    type_confidence: conf,
+    type_confidence: parseFloat(json.type_confidence),
     zone: parseFloat(json.zone),
     nasty: parseFloat(json.nasty),
     spin_dir: parseFloat(json.spin_dir),
     spin_rate: parseFloat(json.spin_rate),
-    is_left_handed: isLefty ? 1 : 0
+    left_handed_pitcher: isLeftyPitcher ? 1 : 0,
+    left_handed_batter: isLeftyBatter ? 1 : 0
   };
 }
 
-function convertPitchJsonArray(json: PitchJson[], isLefty: boolean): Pitch[] {
+function convertPitchJsonArray(
+    json: PitchJson[], isLeftyPitcher: boolean,
+    isLeftyBatter: boolean): Pitch[] {
   const pitches = [] as Pitch[];
   for (let i = 0; i < json.length; i++) {
-    const pitch = convertPitchJson(json[i], isLefty);
+    const pitch = convertPitchJson(json[i], isLeftyPitcher, isLeftyBatter);
     if (pitch !== null) {
       pitches.push(pitch);
     }
@@ -277,11 +329,14 @@ function convertPitchJsonArray(json: PitchJson[], isLefty: boolean): Pitch[] {
 
 function findAtBatPitches(atBat: AtBat): Pitch[] {
   if (atBat !== undefined) {
-    const isLefty = atBat.p_throws.toUpperCase() === 'L';
+    const isLeftyPitcher = atBat.p_throws.toUpperCase() === 'L';
+    const isLeftyBatter = atBat.stand.toUpperCase() === 'L';
     if (isArray(atBat.pitch)) {
-      return convertPitchJsonArray(atBat.pitch as PitchJson[], isLefty);
+      return convertPitchJsonArray(
+          atBat.pitch as PitchJson[], isLeftyPitcher, isLeftyBatter);
     } else if (atBat.pitch !== undefined) {
-      const pitch = convertPitchJson(atBat.pitch as PitchJson, isLefty);
+      const pitch = convertPitchJson(
+          atBat.pitch as PitchJson, isLeftyPitcher, isLeftyBatter);
       return pitch !== null ? [pitch] : [];
     }
   }
@@ -302,7 +357,7 @@ function findHalfInningPitches(halfInning: InningHalf): Pitch[] {
   return pitches;
 }
 
-function findInningsPitches(inning: Inning[]|Inning): Pitch[] {
+function findInningsPitches(inning: Inning[] | Inning): Pitch[] {
   let pitches = [] as Pitch[];
   // Annoyingly, MLB data is stored as an object if the element has one item,
   // if it has more than one item it is an array.
@@ -356,7 +411,8 @@ export function convertCsvToPitch(row: string): Pitch {
     nasty: parseFloat(v[i++]),
     spin_dir: parseFloat(v[i++]),
     spin_rate: parseFloat(v[i++]),
-    is_left_handed: toInt(v[i++])
+    left_handed_pitcher: toInt(v[i++]),
+    left_handed_batter: toInt(v[i++])
   };
 }
 

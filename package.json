@@ -4,10 +4,8 @@
   "main": "src/index.ts",
   "license": "",
   "scripts": {
-    "generate": "ts-node src/training_data.ts",
-    "hack": "ts-node src/hack.ts",
-    "szd": "ts-node src/strike_zone_data.ts",
-    "download": "ts-node src/index.ts"
+    "generate": "ts-node src/generate.ts",
+    "download": "ts-node src/download.ts"
   },
   "devDependencies": {
     "@types/bson": "^1.0.7",
