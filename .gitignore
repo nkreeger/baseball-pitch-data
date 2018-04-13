@@ -1,4 +1,6 @@
 *.csv
+*.json
+*.gz
 build/
 dist/
 deps/tensorflow/include/*
