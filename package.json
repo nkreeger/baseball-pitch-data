@@ -1,5 +1,5 @@
 {
-  "name": "mlb-pitch-data",
+  "name": "baseball-pitch-data",
   "version": "0.0.1",
   "main": "src/index.ts",
   "license": "",
