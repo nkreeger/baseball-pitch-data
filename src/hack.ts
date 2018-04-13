@@ -9,9 +9,10 @@ const pitches = {} as SamplePitches;
 const content = readFileSync('test_data.csv', 'utf-8').split('\n');
 for (let i = 1; i < content.length - 1; i++) {
   const pitch = convertCsvToPitch(content[i]);
-  console.log(pitch.pitch_code);
   if (pitches[pitch.pitch_code] === undefined) {
     pitches[pitch.pitch_code] = pitch;
+    // console.log(JSON.stringify(pitch));
+    console.log(pitch);
   }
 }
 
