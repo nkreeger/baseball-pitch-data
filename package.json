@@ -1,11 +1,20 @@
 {
   "name": "baseball-pitchfx-data",
   "version": "0.0.1",
+  "description": "Returns PitchFX Pitch data from XML source files.",
+  "author": {
+    "name": "Nick Kreeger"
+  },
   "main": "src/index.ts",
-  "license": "",
+  "types": "dist/index.d.ts",
+  "license": "Apache-2.0",
   "scripts": {
     "generate": "ts-node src/generate.ts",
     "download": "ts-node src/download.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nkreeger/baseball-pitchfx-data"
   },
   "devDependencies": {
     "@types/bson": "^1.0.7",
