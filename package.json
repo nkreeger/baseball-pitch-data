@@ -1,6 +1,6 @@
 {
   "name": "baseball-pitchfx-data",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Returns PitchFX Pitch data from XML source files.",
   "author": {
     "name": "Nick Kreeger"
