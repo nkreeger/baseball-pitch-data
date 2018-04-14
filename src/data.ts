@@ -1,6 +1,7 @@
 import {createWriteStream, readFileSync} from 'fs';
 
-import {MinMax, Pitch, assignMinMax, getDatePitches} from './pitchfx';
+// tslint:disable-next-line:max-line-length
+import {MinMax, Pitch, PitchKeys, assignMinMax, getDatePitches} from './pitchfx';
 
 const SZ_TOP_RANGE = 5.0;
 const SZ_BOT_RANGE = 1.0;
@@ -57,10 +58,12 @@ export function generatePitchTypeTrainingData(
   const pitchesByType = {} as NumKeyPitchArrayValue;
 
   const fields = {} as StringKeyMinMaxValue;
-  initFields(['vx0', 'vy0', 'vz0', 'ax', 'ay', 'az', 'start_speed'], fields);
+  const keys =
+      ['vx0', 'vy0', 'vz0', 'ax', 'ay', 'az', 'start_speed'] as PitchKeys[];
 
   for (let i = 0; i < filenames.length; i++) {
-    filterPitchTypeTrainingData(filenames[i], fields, pitchesByType, maxSize);
+    filterPitchTypeTrainingData(
+        filenames[i], fields, keys, pitchesByType, maxSize);
   }
   savePitchTrainingData(outFilename, pitchesByType, fields);
 }
@@ -72,11 +75,11 @@ export function generateStrikeZonePitchTrainingData(
   const pitchesByType = {} as NumKeyPitchArrayValue;
 
   const fields = {} as StringKeyMinMaxValue;
-  initFields(['px', 'pz', 'sz_top', 'sz_bot'], fields);
+  const keys = ['px', 'pz', 'sz_top', 'sz_bot'] as PitchKeys[];
 
   for (let i = 0; i < filenames.length; i++) {
     filterStrikeZonePitchTrainingData(
-        filenames[i], fields, pitchesByType, maxSize);
+        filenames[i], fields, keys, pitchesByType, maxSize);
   }
   savePitchTrainingData(outFilename, pitchesByType, fields);
 }
@@ -108,33 +111,29 @@ function savePitchTrainingData(
 }
 
 function filterPitchTypeTrainingData(
-    filename: string, fields: StringKeyMinMaxValue,
+    filename: string, fields: StringKeyMinMaxValue, keys: PitchKeys[],
     pitches: NumKeyPitchArrayValue, maxSize: number) {
   const content = readFileSync(filename, 'utf-8').split('\n');
 
   for (let i = 0; i < content.length; i++) {
-    const pitch = JSON.parse(content[i]) as Pitch;
-    if (isValidPitchTypeData(pitch)) {
-      assignMinMax(pitch.vx0, fields['vx0']);
-      assignMinMax(pitch.vy0, fields['vy0']);
-      assignMinMax(pitch.vz0, fields['vz0']);
-      assignMinMax(pitch.ax, fields['ax']);
-      assignMinMax(pitch.ay, fields['ay']);
-      assignMinMax(pitch.az, fields['az']);
-      assignMinMax(pitch.start_speed, fields['start_speed']);
+    if (content[i].length > 0) {
+      const pitch = JSON.parse(content[i]) as Pitch;
+      if (isValidPitchTypeData(pitch)) {
+        assignFieldsMinMax(pitch, keys, fields);
 
-      if (pitches[pitch.pitch_code] === undefined) {
-        pitches[pitch.pitch_code] = [];
-      }
-      if (pitches[pitch.pitch_code].length < maxSize) {
-        pitches[pitch.pitch_code].push(pitch);
+        if (pitches[pitch.pitch_code] === undefined) {
+          pitches[pitch.pitch_code] = [];
+        }
+        if (pitches[pitch.pitch_code].length < maxSize) {
+          pitches[pitch.pitch_code].push(pitch);
+        }
       }
     }
   }
 }
 
 function filterStrikeZonePitchTrainingData(
-    filename: string, fields: StringKeyMinMaxValue,
+    filename: string, fields: StringKeyMinMaxValue, keys: PitchKeys[],
     pitches: NumKeyPitchArrayValue, maxSize: number) {
   const content = readFileSync(filename, 'utf-8').split('\n');
 
@@ -146,34 +145,33 @@ function filterStrikeZonePitchTrainingData(
   }
 
   for (let i = 0; i < content.length; i++) {
-    const pitch = JSON.parse(content[i]) as Pitch;
-    if (isValidStrikeZonePitchData(pitch)) {
-      if (pitch.type.toUpperCase() === 'S') {
-        if (pitch.code !== undefined && pitch.code.toUpperCase() === 'C' &&
-            pitches[0].length < maxSize) {
-          assignMinMax(pitch.px, fields['px']);
-          assignMinMax(pitch.pz, fields['pz']);
-          assignMinMax(pitch.sz_top, fields['sz_top']);
-          assignMinMax(pitch.sz_bot, fields['sz_bot']);
-          pitches[0].push(pitch);
+    if (content[i].length > 0) {
+      const pitch = JSON.parse(content[i]) as Pitch;
+      if (isValidStrikeZonePitchData(pitch)) {
+        if (pitch.type.toUpperCase() === 'S') {
+          if (pitch.code !== undefined && pitch.code.toUpperCase() === 'C' &&
+              pitches[0].length < maxSize) {
+            assignFieldsMinMax(pitch, keys, fields);
+            pitches[0].push(pitch);
+          }
+        } else if (
+            pitch.type.toUpperCase() === 'B' && pitches[1].length < maxSize) {
+          assignFieldsMinMax(pitch, keys, fields);
+          pitches[1].push(pitch);
         }
-      } else if (
-          pitch.type.toUpperCase() === 'B' && pitches[1].length < maxSize) {
-        assignMinMax(pitch.px, fields['px']);
-        assignMinMax(pitch.pz, fields['pz']);
-        assignMinMax(pitch.sz_top, fields['sz_top']);
-        assignMinMax(pitch.sz_bot, fields['sz_bot']);
-        pitches[1].push(pitch);
       }
     }
   }
 }
 
-function initFields(keys: string[], fields: StringKeyMinMaxValue) {
+function assignFieldsMinMax(
+    pitch: Pitch, keys: PitchKeys[], fields: StringKeyMinMaxValue) {
   for (let i = 0; i < keys.length; i++) {
-    if (fields[keys[i]] === undefined) {
-      fields[keys[i]] = new MinMax();
+    const key = keys[i];
+    if (fields[key] === undefined) {
+      fields[key] = new MinMax();
     }
+    assignMinMax(pitch[key] as number, fields[key]);
   }
 }
 
@@ -196,55 +194,3 @@ function isValidStrikeZonePitchData(pitch: Pitch): boolean {
   }
   return false;
 }
-
-// TODO(kreeger): Only use if needed.
-// import {readFileSync} from 'fs';
-// import {convertCsvToPitch, Pitch} from './pitchfx';
-
-// type SamplePitches = {
-//   [key: number]: Pitch
-// };
-
-// const pitches = {} as SamplePitches;
-// const content = readFileSync('test_data.csv', 'utf-8').split('\n');
-// for (let i = 1; i < content.length - 1; i++) {
-//   const pitch = convertCsvToPitch(content[i]);
-//   if (pitches[pitch.pitch_code] === undefined) {
-//     pitches[pitch.pitch_code] = pitch;
-//     // console.log(JSON.stringify(pitch));
-//     console.log(pitch);
-//   }
-// }
-
-// // console.log('pitches', pitches);
-// const vx0 = [];
-// const vy0 = [];
-// const vz0 = [];
-// const ax = [];
-// const ay = [];
-// const az = [];
-// const startSpeed = [];
-// const isLeft = [];
-
-// const keys = Object.keys(pitches);
-// console.log(keys);
-// for (let i = 0; i < keys.length; i++) {
-//   const pitch = pitches[parseInt(keys[i], 10)];
-//   vx0.push(pitch.vx0);
-//   vy0.push(pitch.vy0);
-//   vz0.push(pitch.vz0);
-//   ax.push(pitch.ax);
-//   ay.push(pitch.ay);
-//   az.push(pitch.az);
-//   startSpeed.push(pitch.start_speed);
-//   isLeft.push(pitch.is_left_handed);
-// }
-
-// console.log(`vx0 = [${vx0}]`);
-// console.log(`vy0 = [${vy0}]`);
-// console.log(`vz0 = [${vz0}]`);
-// console.log(`ax = [${ax}]`);
-// console.log(`ay = [${ay}]`);
-// console.log(`az = [${az}]`);
-// console.log(`start_speed = [${startSpeed}]`);
-// console.log(`is_left = [${isLeft}]`);
