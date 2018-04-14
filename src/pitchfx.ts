@@ -160,6 +160,8 @@ export type PitchJson = {
   spin_rate: string,
 };
 
+export type PitchKeys = keyof Pitch;
+
 export type Pitch = {
   des: string,
   id: number,

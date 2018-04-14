@@ -112,7 +112,7 @@ function filterPitchTypeTrainingData(
     pitches: NumKeyPitchArrayValue, maxSize: number) {
   const content = readFileSync(filename, 'utf-8').split('\n');
 
-  for (let i = 1; i < content.length - 1; i++) {
+  for (let i = 0; i < content.length; i++) {
     const pitch = JSON.parse(content[i]) as Pitch;
     if (isValidPitchTypeData(pitch)) {
       assignMinMax(pitch.vx0, fields['vx0']);
@@ -145,7 +145,7 @@ function filterStrikeZonePitchTrainingData(
     pitches[1] = [];
   }
 
-  for (let i = 1; i < content.length - 1; i++) {
+  for (let i = 0; i < content.length; i++) {
     const pitch = JSON.parse(content[i]) as Pitch;
     if (isValidStrikeZonePitchData(pitch)) {
       if (pitch.type.toUpperCase() === 'S') {
