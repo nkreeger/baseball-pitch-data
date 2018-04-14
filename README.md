@@ -1,5 +1,5 @@
-# baseball-pitch-data
+# baseball-pitchfx-data
 
 Loads and returns MLB pitchfx data.
 
-More docs coming soon.
+TODO - add more docs.
