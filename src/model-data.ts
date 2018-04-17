@@ -71,7 +71,7 @@ export function generatePitchTypeTrainingData(
 // Loads JSON pitch data from the passed in filenames and outputs a test file
 // and min/max fields for strike zone pitch training data.
 export function generateStrikeZonePitchTrainingData(
-    filenames: string[], outFilename: string, maxSize: number) {
+    filenames: string[], outFilename: string, maxSize: number, asJson = true) {
   const pitchesByType = {} as NumKeyPitchArrayValue;
 
   const fields = {} as StringKeyMinMaxValue;
@@ -81,12 +81,12 @@ export function generateStrikeZonePitchTrainingData(
     filterStrikeZonePitchTrainingData(
         filenames[i], fields, keys, pitchesByType, maxSize);
   }
-  savePitchTrainingData(outFilename, pitchesByType, fields);
+  savePitchTrainingData(outFilename, pitchesByType, fields, asJson);
 }
 
 function savePitchTrainingData(
     filename: string, pitchesByType: NumKeyPitchArrayValue,
-    fields: StringKeyMinMaxValue) {
+    fields: StringKeyMinMaxValue, asJson = true) {
   const writeStream = createWriteStream(filename);
   let keys = Object.keys(pitchesByType);
   for (let i = 0; i < keys.length; i++) {
@@ -175,12 +175,12 @@ function assignFieldsMinMax(
   }
 }
 
-function isValidPitchTypeData(pitch: Pitch): boolean {
+export function isValidPitchTypeData(pitch: Pitch): boolean {
   return pitch.type_confidence >= .95 && pitch.type_confidence <= 1.0 &&
       !isNaN(pitch.pitch_code) && pitch.pitch_code < 7 && pitch.pitch_code > -1;
 }
 
-function isValidStrikeZonePitchData(pitch: Pitch): boolean {
+export function isValidStrikeZonePitchData(pitch: Pitch): boolean {
   const top = pitch.sz_top;
   const bot = pitch.sz_bot;
   const delta = top - bot;
