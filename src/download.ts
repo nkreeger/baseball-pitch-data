@@ -1,4 +1,4 @@
-import {downloadPitchData} from './data';
+import {downloadPitchData} from './model-data';
 
 downloadPitchData(
     new Date('2014-3-31'), new Date('2014-10-29'), '2014_pitches.csv');
