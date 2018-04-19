@@ -1,3 +1,4 @@
+import {SortedArray} from 'containers.js';
 import * as rp from 'request-promise-native';
 import {toJson} from 'xml2json';
 
@@ -12,52 +13,60 @@ function getTwoDigit(num: number): string {
   return num.toString();
 }
 
-async function getDateGamePaths(path: string):
-    Promise<string[]> {
-      let games = [] as string[];
-      await
-          rp.get(path, {}, (error, response, body) => {
-              if (error) {
-                throw new Error(error);
-              }
-              const matches = body.match(REGEX);
-              if (matches !== null) {
-                games = matches;
-              }
-            }).catch(() => {});
-      return games;
-    }
+async function getDateGamePaths(path: string): Promise<string[]> {
+  let games = [] as string[];
+  await rp
+      .get(
+          path, {},
+          (error, response, body) => {
+            if (error) {
+              throw new Error(error);
+            }
+            const matches = body.match(REGEX);
+            if (matches !== null) {
+              games = matches;
+            }
+          })
+      .catch(() => {});
+  return games;
+}
 
-async function
-getGameJson(path: string):
-    Promise<GameJson> {
-      let gameJson = null as GameJson;
-      await
-          rp.get(path + INNINGS_FILE_PATH, {}, (error, response, body) => {
-              if (error) {
-                throw new Error(error);
-              }
-              gameJson = toJson(body, {object: true}) as GameJson;
-            }).catch(() => {});
-      return gameJson;
-    }
+async function getGameJson(path: string): Promise<GameJson> {
+  let gameJson = null as GameJson;
+  await rp
+      .get(
+          path + INNINGS_FILE_PATH, {},
+          (error, response, body) => {
+            if (error) {
+              throw new Error(error);
+            }
+            gameJson = toJson(body, {object: true}) as GameJson;
+          })
+      .catch(() => {});
+  return gameJson;
+}
 
-export async function
-getDatePitches(date: Date):
-    Promise<Pitch[]> {
-      const subpath = `year_${date.getFullYear()}/month_${
+export async function getDatePitches(date: Date): Promise<Pitch[]> {
+  const subpath = `year_${date.getFullYear()}/month_${
       getTwoDigit(date.getMonth() + 1)}/day_${getTwoDigit(date.getDate())}`;
-      const datePath = BASE_URL + subpath;
+  const datePath = BASE_URL + subpath;
 
-      const gamePaths = await getDateGamePaths(datePath);
+  const gamePaths = await getDateGamePaths(datePath);
 
-      let pitches = [] as Pitch[];
-      for (let i = 0; i < gamePaths.length; i++) {
-        const gameJson = await getGameJson(datePath + gamePaths[i]);
-        pitches = pitches.concat(getGamePitches(gameJson));
-      }
-      return pitches;
+  const pitches = new SortedArray<Pitch>((a, b) => {
+    const aDate = new Date(a.tfs_zulu).getTime();
+    const bDate = new Date(b.tfs_zulu).getTime();
+    if (aDate === bDate) {
+      return 0;
     }
+    return aDate > bDate ? 1 : -1;
+  });
+  for (let i = 0; i < gamePaths.length; i++) {
+    const gameJson = await getGameJson(datePath + gamePaths[i]);
+    pitches.insertValues(getGamePitches(gameJson));
+  }
+  return pitches.values();
+}
 
 export class MinMax {
   min: number;
@@ -84,7 +93,7 @@ export type GameJson = {
 
 export type Game = {
   atBat: string,
-  inning: Inning | Inning[]
+  inning: Inning|Inning[]
 };
 
 export type Inning = {
@@ -97,7 +106,7 @@ export type Inning = {
 };
 
 export type InningHalf = {
-  atbat: AtBat | AtBat[]
+  atbat: AtBat|AtBat[]
 };
 
 export type AtBat = {
@@ -117,7 +126,7 @@ export type AtBat = {
   event_num: string,
   event: string,
   play_guid: string,
-  pitch: PitchJson | PitchJson[]
+  pitch: PitchJson|PitchJson[]
 };
 
 export type PitchJson = {
@@ -359,7 +368,7 @@ function findHalfInningPitches(halfInning: InningHalf): Pitch[] {
   return pitches;
 }
 
-function findInningsPitches(inning: Inning[] | Inning): Pitch[] {
+function findInningsPitches(inning: Inning[]|Inning): Pitch[] {
   let pitches = [] as Pitch[];
   // Annoyingly, MLB data is stored as an object if the element has one item,
   // if it has more than one item it is an array.
