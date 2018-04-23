@@ -1,7 +1,8 @@
+import {Pitch, PitchKeys} from 'baseball-pitchfx-types';
 import {createWriteStream, readFileSync} from 'fs';
 
 // tslint:disable-next-line:max-line-length
-import {MinMax, Pitch, PitchKeys, assignMinMax, getDatePitches} from './pitchfx';
+import {assignMinMax, getDatePitches, MinMax} from './pitchfx';
 
 const SZ_TOP_RANGE = 5.0;
 const SZ_BOT_RANGE = 1.0;
