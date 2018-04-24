@@ -21,12 +21,11 @@ async function getDateGamePaths(path: string): Promise<string[]> {
       .get(
           path, {},
           (error, response, body) => {
-            if (error) {
-              throw new Error(error);
-            }
-            const matches = body.match(REGEX);
-            if (matches !== null) {
-              games = matches;
+            if (!error) {
+              const matches = body.match(REGEX);
+              if (matches !== null) {
+                games = matches;
+              }
             }
           })
       .catch(() => {});
@@ -39,10 +38,9 @@ async function getGameJson(path: string): Promise<GameJson> {
       .get(
           path + INNINGS_FILE_PATH, {},
           (error, response, body) => {
-            if (error) {
-              throw new Error(error);
+            if (!error) {
+              gameJson = toJson(body, {object: true}) as GameJson;
             }
-            gameJson = toJson(body, {object: true}) as GameJson;
           })
       .catch(() => {});
   return gameJson;
