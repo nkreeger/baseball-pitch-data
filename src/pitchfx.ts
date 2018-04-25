@@ -282,7 +282,8 @@ export function convertSZData(pitch: Pitch, isStrike: boolean): SZData {
 
 export function getGamePitches(gameJson: GameJson): Pitch[] {
   let pitches = [] as Pitch[];
-  if (gameJson.game !== undefined && gameJson.game.inning !== undefined) {
+  if (gameJson !== undefined && gameJson.game !== undefined &&
+      gameJson.game.inning !== undefined) {
     pitches = findInningsPitches(gameJson.game.inning);
   }
   return pitches;
