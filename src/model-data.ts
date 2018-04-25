@@ -176,9 +176,13 @@ function assignFieldsMinMax(
   }
 }
 
+export function isClassifiedPitchType(pitch: Pitch): boolean {
+  return pitch.pitch_code < 7 && pitch.pitch_code > -1;
+}
+
 export function isValidPitchTypeData(pitch: Pitch): boolean {
   return pitch.type_confidence >= .95 && pitch.type_confidence <= 1.0 &&
-      !isNaN(pitch.pitch_code) && pitch.pitch_code < 7 && pitch.pitch_code > -1;
+      !isNaN(pitch.pitch_code) && isClassifiedPitchType(pitch);
 }
 
 export function isValidStrikeZonePitchData(pitch: Pitch): boolean {
