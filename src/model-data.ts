@@ -19,9 +19,6 @@ type StringKeyMinMaxValue = {
   [key: string]: MinMax
 };
 
-// CSV generation:
-// output += jsonStr.substring(1, jsonStr.length - 1) + '\n';
-
 // Saves cleaned up pitch data as JSON in a given filename:
 export async function downloadPitchData(
     start: Date, end: Date, filename: string) {

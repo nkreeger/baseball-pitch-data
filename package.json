@@ -10,7 +10,8 @@
   "license": "Apache-2.0",
   "scripts": {
     "build": "tsc",
-    "generate": "ts-node src/generate.ts",
+    "generate-strike-zone": "ts-node src/generate-strike-zone.ts",
+    "generate-pitch-type": "ts-node src/generate-pitch-type.ts",
     "download": "ts-node src/download.ts"
   },
   "repository": {
